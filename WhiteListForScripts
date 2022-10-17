@@ -1,4 +1,4 @@
 return {
-["aura_tt030"] = true
-["a7bkebthal"] = true
-}
+    ["aura_tt030"] = true
+    ["a7bkebthal"]
+    }
