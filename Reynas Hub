@@ -1,0 +1,308 @@
+--PSX aviable now , other games will be soon, you can leave comment what game script do you want
+if game.CoreGui:FindFirstChild("Discord") then
+    game.CoreGui:FindFirstChild("Discord"):Destroy()
+end
+
+local DiscordLib = loadstring(game:HttpGet"https://raw.githubusercontent.com/dawid-scripts/UI-Libs/main/discord%20lib.txt")()
+
+local win = DiscordLib:Window("Reynas Hub")
+
+local psx = win:Server("Pet Simulator x", "")
+
+local main = psx:Channel("Main")
+
+local GameLibrary = require(game:GetService("ReplicatedStorage"):WaitForChild("Framework"):WaitForChild("Library"))
+local Network = GameLibrary.Network
+local Run_Service = game:GetService("RunService")
+local rs = Run_Service.RenderStepped
+local CurrencyOrder = {"Rainbow Coins", "Tech Coins", "Fantasy Coins", "Coins", "Diamonds"}
+
+local IMightKillMyselfCauseOfThis = {
+	--Misc
+	['VIP'] = {'VIP'};
+	--Spawn
+	['Town'] = {'Town', 'Town FRONT'}; ['Forest'] = {'Forest', 'Forest FRONT'}; ['Beach'] = {'Beach', 'Beach FRONT'}; ['Mine'] = {'Mine', 'Mine FRONT'}; ['Winter'] = {'Winter', 'Winter FRONT'}; ['Glacier'] = {'Glacier', 'Glacier Lake'}; ['Desert'] = {'Desert', 'Desert FRONT'}; ['Volcano'] = {'Volcano', 'Volcano FRONT'};
+	-- Fantasy init
+	['Enchanted Forest'] = {'Enchanted Forest', 'Enchanted Forest FRONT'}; ['Ancient'] = {'Ancient Island'}; ['Samurai'] = {'Samurai Island', 'Samurai Island FRONT'}; ['Candy'] = {'Candy Island'}; ['Haunted'] = {'Haunted Island', 'Haunted Island FRONT'}; ['Hell'] = {'Hell Island'}; ['Heaven'] = {'Heaven Island'};
+	-- Tech
+	['Ice Tech'] = {'Ice Tech'}; ['Tech City'] = {'Tech City'; 'Tech City FRONT'}; ['Dark Tech'] = {'Dark Tech'; 'Dark Tech FRONT'}; ['Steampunk'] = {'Steampunk'; 'Steampunk FRONT'}, ['Alien Forest'] = {"Alien Forest"; "Alien Forest FRONT"}, ['Alien Lab'] = {"Alien Forest"; "Alien Lab FRONT"}, ['Glitch'] = {"Glitch"; "Glitch FRONT"}; ['Hacker Portal'] = {"Hacker Portal", "Hacker Portal FRONT"};
+	-- Axolotl
+	['Axolotl Ocean'] = {'Axolotl Ocean', 'Axolotl Ocean FRONT'}; ['Axolotl Deep Ocean'] = {'Axolotl Deep Ocean', 'Axolotl Deep Ocean FRONT'}; ['Axolotl Cave'] = {'Axolotl Cave', 'Axolotl Cave FRONT'};
+	-- Minecraft
+	['Pixel Forest'] = {'Pixel Forest', 'Pixel Forest FRONT'}; ['Pixel Kyoto'] = {'Pixel Kyoto', 'Pixel Kyoto FRONT'}; ['Pixel Alps'] = {'Pixel Alps', 'Pixel Alps FRONT'} ; ['Pixel Vault'] = {'Pixel Vault', 'Pixel Vault FRONT'};
+}
+
+local Areas = {
+	'VIP';
+	'Town'; 'Forest'; 'Beach'; 'Mine'; 'Winter'; 'Glacier'; 'Desert'; 'Volcano';
+	'Enchanted Forest'; 'Ancient'; 'Samurai'; 'Candy'; 'Haunted'; 'Hell'; 'Heaven';
+	'Ice Tech'; 'Tech City'; 'Dark Tech'; 'Steampunk'; 'Alien Lab'; 'Alien Forest'; 'Glitch'; "Hacker Portal";
+	'Axolotl Ocean'; 'Axolotl Deep Ocean'; 'Axolotl Cave';
+	'Pixel Forest'; 'Pixel Kyoto'; 'Pixel Alps'; 'Pixel Vault';
+}
+
+local Chests = {
+	"Magma Chest",
+	"Enchanted Chest", "Hell Chest", "Haunted Chest", "Angel Chest", "Grand Heaven Chest",
+	"Giant Tech Chest"; "Giant Steampunk Chest"; "Giant Alien Chest"; "Giant Hacker Chest";
+    "Giant Ocean Chest";
+    "Giant Pixel Chest";
+}
+
+workspace.__THINGS.__REMOTES.MAIN:FireServer("b", "buy egg")
+workspace.__THINGS.__REMOTES.MAIN:FireServer("b", "join coin")
+workspace.__THINGS.__REMOTES.MAIN:FireServer("a", "farm coin")
+workspace.__THINGS.__REMOTES.MAIN:FireServer("a", "claim orbs")
+workspace.__THINGS.__REMOTES.MAIN:FireServer("a", "change pet target")
+
+function FarmCoin(CoinID, PetID)
+    game.workspace['__THINGS']['__REMOTES']["join coin"]:InvokeServer({[1] = CoinID, [2] = {[1] = PetID}})
+    game.workspace['__THINGS']['__REMOTES']["farm coin"]:FireServer({[1] = CoinID, [2] = PetID})
+end
+
+function GetMyPets()
+	local returntable = {}
+	for i,v in pairs(GameLibrary.Save.Get().Pets) do
+		if v.e then 
+			table.insert(returntable, v.uid)
+		end
+	end
+	return returntable
+end
+
+function GetCoins(area)
+    local returntable = {}
+    local ListCoins = game.workspace['__THINGS']['__REMOTES']["get coins"]:InvokeServer({})[1]
+    for i,v in pairs(ListCoins) do
+        if MainWindow.flags.FarmingArea == 'All' or table.find(IMightKillMyselfCauseOfThis[MainWindow.flags.FarmingArea], v.a) then
+            local shit = v
+            shit["index"] = i
+            table.insert(returntable, shit)
+         end
+    end
+    return returntable
+end
+
+function GetCoinTable(area)
+    local CoinTable = GetCoins(area)
+    function getKeysSortedByValue(tbl, sortFunction)
+        local keys = {}
+        for key in pairs(tbl) do
+            table.insert(keys, key)
+        end
+        table.sort(
+            keys,
+            function(a, b)
+                return sortFunction(tbl[a].h, tbl[b].h)
+            end
+        )
+        return keys
+    end
+    local sortedKeys = getKeysSortedByValue(CoinTable, function(a, b) return a > b end)
+    local newCoinTable = {}
+ 
+    for i,v in pairs(sortedKeys) do
+        table.insert(newCoinTable, CoinTable[v])
+    end
+ 
+    return newCoinTable
+end
+
+local AreaWorldTable = {}
+	for _, v in pairs(game:GetService("ReplicatedStorage").Game.Coins:GetChildren()) do
+    	for _, b in pairs(v:GetChildren()) do
+        table.insert(AreaWorldTable, b.Name)
+    end
+    table.insert(AreaWorldTable, v.Name)
+end
+
+function AllChests()
+    local returntable = {}
+    local ListCoins = game.workspace['__THINGS']['__REMOTES']["get coins"]:InvokeServer({})[1]
+    for i,v in pairs(ListCoins) do
+        local shit = v
+        shit.index = i
+        for aa,bb in pairs(AreaWorldTable) do
+            if string.find(v.n, bb) or  string.find(v.n, "Giant") then
+                local thing = string.gsub(v.n, bb.." ", "")
+                if table.find(Chests, thing) then
+                    shit.n = thing
+                    table.insert(returntable, shit)
+                end
+            end
+        end
+    end
+    return returntable
+end
+
+--[[
+--the remote works like this. I'm too scared to test anything else out
+function CollectOrbs()
+    local ohTable1 = {[1] = {}}
+    for i,v in pairs(game.workspace['__THINGS'].Orbs:GetChildren()) do
+        ohTable1[1][i] = v.Name
+    end
+    game.workspace['__THINGS']['__REMOTES']["claim orbs"]:FireServer(ohTable1)
+end
+]]
+
+if _G.MyConnection then _G.MyConnection:Disconnect() end
+	_G.MyConnection = game.Workspace.__THINGS.Orbs.ChildAdded:Connect(function(Orb)
+    game.Workspace.__THINGS.__REMOTES["claim orbs"]:FireServer({{Orb.Name}})
+end)
+
+main:Label("this is 0.1V, updates will come!")
+
+main:Button("Discord", function()
+setclipboard("discord.com/invites/CNNr5wfFx8")
+DiscordLib:Notification("Notification", "Copyed!", "Okay!")
+end)
+
+main:Toggle("Auto-Farm",false, function(Value)
+	_G.FarmingEnabled = Value
+	local CurrentFarmingPets = {}
+    while task.wait() and _G.FarmingEnabled do
+        local pethingy = GetMyPets()
+ 
+        if _G.farmingType == 'Normal' then
+            local cointhiny = GetCoins(_G.farmingArea)
+            for i = 1, #cointhiny do
+                if _G.FarmingEnabled and game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(cointhiny[i].index) then
+                    for _, bb in pairs(pethingy) do
+                        if _G.FarmingEnabled and game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(cointhiny[i].index) then
+                                wait(0.1)
+                            spawn(function()
+                                FarmCoin(cointhiny[i].index, bb)
+                            end)
+                        end
+                    end
+                    repeat task.wait() until not game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(cointhiny[i].index)
+                end
+            end
+ 
+        elseif _G.farmingType == 'Chest' then
+            for i,v in pairs(AllChests()) do
+                if (v.n == _G.farmingSingleChest) or (_G.farmingSingleChest == 'All') then
+                    local starttick = tick()
+                    for a, b in pairs(pethingy) do
+                        coroutine.wrap(function() FarmCoin(v.index, b) end)()
+                    end
+                    repeat task.wait() until not game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(v.index) or #game:GetService("Workspace")["__THINGS"].Coins[v.index].Pets:GetChildren() == 0
+                    warn(v.n .. " has been broken in", tick()-starttick)
+                end
+            end
+ 
+        elseif _G.farmingType == 'Multi Target' then
+            local cointhiny = GetCoins(_G.farmingArea)
+            for i = 1, #cointhiny do
+                if i%#pethingy == #pethingy-1 then wait() end
+                if not CurrentFarmingPets[pethingy[i%#pethingy+1]] or CurrentFarmingPets[pethingy[i%#pethingy+1]] == nil then
+wait(0.1)
+                    spawn(function()
+                        CurrentFarmingPets[pethingy[i%#pethingy+1]] = 'Farming'
+                        FarmCoin(cointhiny[i].index, pethingy[i%#pethingy+1])
+                        repeat rs:wait() until not game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(cointhiny[i].index) or #game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(cointhiny[i].index).Pets:GetChildren() == 0
+                        CurrentFarmingPets[pethingy[i%#pethingy+1]] = nil
+                    end)
+                end
+            end
+ 
+        elseif _G.farmingType == 'Highest Value' then
+            local cointhiny = GetCoinTable(_G.farmingArea)
+            for a,b in pairs(pethingy) do
+                spawn(function() wait() FarmCoin(cointhiny[1].index, b) end)
+            end
+            repeat rs:wait() until not game:GetService("Workspace")["__THINGS"].Coins:FindFirstChild(cointhiny[1].index) or #game:GetService("Workspace")["__THINGS"].Coins[cointhiny[1].index].Pets:GetChildren() == 0
+ 
+        elseif _G.farmingType == 'Nearest' then
+            local NearestOne = nil
+            local NearestDistance = math.huge
+            for i,v in pairs(game:GetService("Workspace")["__THINGS"].Coins:GetChildren()) do
+                if (v.POS.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude < NearestDistance then
+                    NearestOne = v
+                    NearestDistance = (v.POS.Position - game.Players.LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                end
+            end
+            for a,b in pairs(pethingy) do
+                spawn(function() FarmCoin(NearestOne.Name, b) end)
+            end
+        end
+    end
+end)
+
+local drop = main:Dropdown("Type",{'Nearest'}, function(Value)
+	_G.farmingType = Value
+end)
+local egg = psx:Channel("Eggs")
+
+main:Toggle("Collect Loot bags",false, function(bool)
+    _G.Toggle = bool
+    while _G.Toggle do wait()
+        for i,v in pairs(game:GetService("Workspace")["__THINGS"].Lootbags:GetChildren()) do
+        v.CFrame = CFrame.new(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
+        end
+    end
+end)
+
+egg:Label("Triple egg | ~190 eggs / minute, ~11000 eggs / hour")
+egg:Label("One egg | ~70 eggs / minute, ~4000 eggs / hour")
+
+egg:Button("Anti-AFK", function()
+    local VirtualUser=game:service'VirtualUser'
+    game:service'Players'.LocalPlayer.Idled:connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new())
+    end)
+    DiscordLib:Notification("Notification", "Anti-AFK enabled!", "Okay!")
+end)
+
+egg:Button("Remove Egg animation", function()
+    for i,v in pairs(getgc(true)) do
+        if (typeof(v) == 'table' and rawget(v, 'OpenEgg')) then
+            v.OpenEgg = function()
+                 return
+            end
+        end
+    end
+end)
+
+egg:Button("Opened Egg Count", function()
+    local lib = require(game.ReplicatedStorage:WaitForChild("Framework"):WaitForChild("Library"))
+    x = lib.Network.Invoke("get stats",game.Players.LocalPlayer)
+    for i,v in pairs(x.EggsOpened) do
+        warn(i,v)
+    end
+    DiscordLib:Notification("Notification", "Press F9 to see Opened egg Count!", "Okay!")
+end)
+
+_G.tripple = false
+
+egg:Toggle("Tripple Egg",false, function(bool)
+    _G.tripple = bool
+end)
+
+egg:Toggle("Cursed Egg",false, function(bool)
+    _G.switcher = bool
+    while _G.switcher == true do
+        local A_1 = 
+        {
+            [1] = "Cursed Egg", 
+            [2] = _G.tripple
+        }
+        local Event = game:GetService("Workspace")["__THINGS"]["__REMOTES"]["buy egg"]
+        Event:InvokeServer(A_1)
+    end
+end)
+
+egg:Toggle("Rainbow Pixel Egg",false, function(bool)
+    _G.switcher = bool
+    while _G.switcher == true do
+        local A_1 = 
+        {
+            [1] = "Rainbow Pixel Egg", 
+            [2] = _G.tripple
+        }
+        local Event = game:GetService("Workspace")["__THINGS"]["__REMOTES"]["buy egg"]
+        Event:InvokeServer(A_1)
+    end
+end)
